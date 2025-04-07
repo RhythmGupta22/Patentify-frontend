@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "333282399082",
+    "project_id": "patentify-35ff3",
+    "storage_bucket": "patentify-35ff3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:333282399082:android:5fba21c8236424a67acb13",
+        "android_client_info": {
+          "package_name": "com.example.patentify"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "333282399082-8pu0ubl2v38h077h3qgqifl6trmbn822.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAob3RQIda4eUyBG0p1CCMT37PI50C3124"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "333282399082-8pu0ubl2v38h077h3qgqifl6trmbn822.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "333282399082-7t47353a7n8gjelvdqfh5pled3cu0tvs.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.patentify"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
