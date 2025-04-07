@@ -32,9 +32,9 @@ class _LandingScreenState extends State<LandingScreen> {
     final LandingController controller = Get.find();
     final AuthController authController = Get.find();
 
-    return Scaffold(
+    return Scaffold(extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.8),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: Padding(
           padding: const EdgeInsets.only(top: 16, left: 16),
@@ -57,23 +57,23 @@ class _LandingScreenState extends State<LandingScreen> {
                     children: [
                       TextButton(
                         onPressed: () => controller.scrollToSection(controller.homeKey),
-                        child: const Text('Home', style: TextStyle(color: Colors.white, fontSize: 17)),
+                        child: const Text('Home', style: TextStyle(color: Colors.white, fontSize: 15)),
                       ),
                       TextButton(
                         onPressed: () => controller.scrollToSection(controller.aboutKey),
-                        child: const Text('About', style: TextStyle(color: Colors.white, fontSize: 17)),
+                        child: const Text('About', style: TextStyle(color: Colors.white, fontSize: 15)),
                       ),
                       TextButton(
                         onPressed: () => controller.scrollToSection(controller.howItWorksKey),
-                        child: const Text('How It Works', style: TextStyle(color: Colors.white, fontSize: 17)),
+                        child: const Text('How It Works', style: TextStyle(color: Colors.white, fontSize: 15)),
                       ),
                       TextButton(
                         onPressed: () => controller.scrollToSection(controller.testimonialsKey),
-                        child: const Text('Testimonials', style: TextStyle(color: Colors.white, fontSize: 17)),
+                        child: const Text('Testimonials', style: TextStyle(color: Colors.white, fontSize: 15)),
                       ),
                       TextButton(
                         onPressed: () => controller.scrollToSection(controller.contactKey),
-                        child: const Text('Contact', style: TextStyle(color: Colors.white, fontSize: 17)),
+                        child: const Text('Contact', style: TextStyle(color: Colors.white, fontSize: 15)),
                       ),
                     ],
                   ),
@@ -552,7 +552,7 @@ class MovingGradientBubblePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width * 0.33;
+    final radius = size.width * 0.3;
 
     final paint = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.inner, 50) // Blur effect
