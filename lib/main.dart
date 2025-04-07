@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'package:patentify/screens/authentication/controller/auth_controller.dart';
+import 'package:patentify/screens/authentication/screen/login_screen.dart';
 import 'package:patentify/screens/chat/controller/chat_controller.dart';
 import 'package:patentify/screens/chat/screen/chat_screen.dart';
 import 'package:patentify/screens/landing/controller/landing_controller.dart';
@@ -41,7 +42,7 @@ class PatentifyApp extends StatelessWidget {
       home: Obx(() {
 
         final user = AuthController.user.value?.displayName;
-        return user != null ? const ChatScreen() : const LoginScreen();
+        return user != null ? const ChatScreen() : const LandingScreen();
 
       }),
     );
