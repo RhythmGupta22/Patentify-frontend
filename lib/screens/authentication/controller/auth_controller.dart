@@ -7,7 +7,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Rx<User?> user = Rx<User?>(null);
+ static Rx<User?> user = Rx<User?>(null);
 
   @override
   void onInit() {

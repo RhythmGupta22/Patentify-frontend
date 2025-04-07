@@ -27,7 +27,6 @@ class PatentifyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.find();
 
     return GetMaterialApp(
       title: 'Patentify',
@@ -40,8 +39,10 @@ class PatentifyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: Obx(() {
-        final user = authController.user.value?.displayName;
-        return user != null ? const ChatScreen() : const LandingScreen();
+
+        final user = AuthController.user.value?.displayName;
+        return user != null ? const ChatScreen() : const LoginScreen();
+
       }),
     );
   }
