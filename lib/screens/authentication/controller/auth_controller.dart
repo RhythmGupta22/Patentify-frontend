@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:patentify/screens/chat/screen/chat_screen.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AuthController extends GetxController {
@@ -26,6 +27,7 @@ class AuthController extends GetxController {
         final User? user = userCredential.user;
         if (user != null) {
           debugPrint('User signed in: ${user.displayName}');
+          Get.to(()=>ChatScreen());
         }
       } else {
         final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
@@ -44,6 +46,7 @@ class AuthController extends GetxController {
         final User? user = userCredential.user;
         if (user != null) {
           debugPrint('User signed in: ${user.displayName}');
+          Get.to(()=>ChatScreen());
           update();
         }
       }
