@@ -9,7 +9,6 @@ import 'package:metalink_flutter/metalink_flutter.dart';
 import 'package:patentify/screens/authentication/controller/auth_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_tile/url_tile.dart';
-import '../../../widgets/linkPreviewExtension.dart';
 import '../controller/chat_controller.dart' as cl;
 import 'sidebar.dart';
 
@@ -81,6 +80,7 @@ class ChatScreen extends StatelessWidget {
                         ),
                         Obx(() {
                           User? user = AuthController.user.value;
+
                           return Padding(
                             padding: const EdgeInsets.only(right: 4.0),
                             child: CachedNetworkImage(
@@ -216,11 +216,16 @@ class ChatScreen extends StatelessWidget {
                                               icon: FontAwesomeIcons.clock,
                                               text: 'Timeline',
                                               isSelected: selectedButton.value == 'timeline',
-                                              onTap: () {
-                                                selectedButton.value =
-                                                selectedButton.value == 'timeline'
-                                                    ? ''
-                                                    : 'timeline';
+                                              onTap: () async {
+                                                selectedButton.value = selectedButton.value == 'timeline' ? '' : 'timeline';
+                                                if(messageController.text.isEmpty){
+                                                  Get.snackbar("Warning", "Please prompt your idea");
+                                                }
+                                                if (selectedButton.value == 'timeline') {
+                                                  await chatController.generateTimeline(messageController.text);
+                                                  messageController.clear();
+                                                }
+
                                               },
                                             ),
                                             const Spacer(),
@@ -237,7 +242,6 @@ class ChatScreen extends StatelessWidget {
                                                   final text = messageController.text.trim();
                                                   if (text.isNotEmpty) {
                                                     chatController.sendMessage(text);
-                                                    messageController.clear();
                                                   }
                                                 },
                                               ),
@@ -310,6 +314,8 @@ class ChatScreen extends StatelessWidget {
                           final message = chatController.messages[reversedIndex];
                           final isUser = message.user.id == "user";
                           final urls = extractUrls(message.text.toString());
+                          print("lllll");
+                          print(AuthController.user.value?.photoURL);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 225),
