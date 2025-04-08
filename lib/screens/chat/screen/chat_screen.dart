@@ -81,6 +81,7 @@ class ChatScreen extends StatelessWidget {
                         ),
                         Obx(() {
                           User? user = AuthController.user.value;
+
                           return Padding(
                             padding: const EdgeInsets.only(right: 4.0),
                             child: CachedNetworkImage(
@@ -310,6 +311,8 @@ class ChatScreen extends StatelessWidget {
                           final message = chatController.messages[reversedIndex];
                           final isUser = message.user.id == "user";
                           final urls = extractUrls(message.text.toString());
+                          print("lllll");
+                          print(AuthController.user.value?.photoURL);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 225),
@@ -648,4 +651,3 @@ class ChatScreen extends StatelessWidget {
     return widgets;
   }
 }
-
