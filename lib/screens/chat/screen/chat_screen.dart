@@ -1,16 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_link_previewer/flutter_link_previewer.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:html/parser.dart' show parse;
+import 'package:metalink_flutter/metalink_flutter.dart';
 import 'package:patentify/screens/authentication/controller/auth_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_tile/url_tile.dart';
+import '../../../widgets/linkPreviewExtension.dart';
 import '../controller/chat_controller.dart' as cl;
 import 'sidebar.dart';
-
-// ... (other imports remain the same)
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
@@ -22,7 +23,6 @@ class ChatScreen extends StatelessWidget {
     final RxBool isSidebarOverlaid = false.obs;
     final RxString selectedButton = ''.obs;
 
-    // Function to extract URLs from HTML string
     List<String> extractUrls(String htmlString) {
       final document = parse(htmlString);
       final links = document.getElementsByTagName('a');
@@ -32,6 +32,15 @@ class ChatScreen extends StatelessWidget {
           .toList();
     }
 
+    Future<void> _launchUrl(String url) async {
+      final Uri uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Get.snackbar('Error', 'Could not launch $url');
+      }
+    }
+
     return Scaffold(
       body: Obx(() => Row(
         children: [
@@ -39,8 +48,7 @@ class ChatScreen extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             width: isSidebarOverlaid.value ? 280 : 0,
             child: Sidebar(
-              onToggle: () =>
-              isSidebarOverlaid.value = !isSidebarOverlaid.value,
+              onToggle: () => isSidebarOverlaid.value = !isSidebarOverlaid.value,
               onNewChat: chatController.clearChat,
             ),
           ),
@@ -58,14 +66,10 @@ class ChatScreen extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: Icon(
-                                isSidebarOverlaid.value
-                                    ? Icons.menu_open
-                                    : Icons.menu,
-                                color:
-                                const Color.fromRGBO(180, 180, 180, 1),
+                                isSidebarOverlaid.value ? Icons.menu_open : Icons.menu,
+                                color: const Color.fromRGBO(180, 180, 180, 1),
                               ),
-                              onPressed: () => isSidebarOverlaid.value =
-                              !isSidebarOverlaid.value,
+                              onPressed: () => isSidebarOverlaid.value = !isSidebarOverlaid.value,
                             ),
                             const SizedBox(width: 8),
                             const Text('Patentify',
@@ -76,30 +80,25 @@ class ChatScreen extends StatelessWidget {
                           ],
                         ),
                         Obx(() {
-                          final user = AuthController.user.value;
+                          User? user = AuthController.user.value;
                           return Padding(
                             padding: const EdgeInsets.only(right: 4.0),
                             child: CachedNetworkImage(
                               imageUrl: user?.photoURL ?? '',
-                              imageBuilder: (context, imageProvider) =>
-                                  CircleAvatar(
-                                    radius: 17,
-                                    backgroundImage: imageProvider,
-                                    backgroundColor: Colors.grey,
-                                  ),
-                              placeholder: (context, url) =>
-                              const CircleAvatar(
+                              imageBuilder: (context, imageProvider) => CircleAvatar(
                                 radius: 17,
+                                backgroundImage: imageProvider,
                                 backgroundColor: Colors.grey,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white),
                               ),
-                              errorWidget: (context, url, error) =>
-                              const CircleAvatar(
+                              placeholder: (context, url) => const CircleAvatar(
                                 radius: 17,
                                 backgroundColor: Colors.grey,
-                                child:
-                                Icon(Icons.person, color: Colors.white),
+                                child: CircularProgressIndicator(color: Colors.white),
+                              ),
+                              errorWidget: (context, url, error) => const CircleAvatar(
+                                radius: 17,
+                                backgroundColor: Colors.grey,
+                                child: Icon(Icons.person, color: Colors.white),
                               ),
                             ),
                           );
@@ -112,8 +111,7 @@ class ChatScreen extends StatelessWidget {
                       if (chatController.messages.isEmpty) {
                         return Center(
                           child: ConstrainedBox(
-                            constraints:
-                            const BoxConstraints(maxWidth: 800),
+                            constraints: const BoxConstraints(maxWidth: 800),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -136,7 +134,6 @@ class ChatScreen extends StatelessWidget {
                                         color: Colors.white,
                                       ),
                                     ),
-
                                   ],
                                 ),
                                 const SizedBox(height: 20),
@@ -166,14 +163,12 @@ class ChatScreen extends StatelessWidget {
                                             border: OutlineInputBorder(
                                               borderSide: BorderSide.none,
                                             ),
-                                            contentPadding:
-                                            const EdgeInsets.only(left: 5),
+                                            contentPadding: const EdgeInsets.only(left: 5),
                                             suffixIcon: Padding(
                                               padding: const EdgeInsets.only(right: 2),
                                               child: IconButton(
                                                 icon: const Icon(Icons.mic),
-                                                color: const Color.fromRGBO(
-                                                    180, 180, 180, 1),
+                                                color: const Color.fromRGBO(180, 180, 180, 1),
                                                 onPressed: () {
                                                   debugPrint('Mic button pressed');
                                                 },
@@ -184,7 +179,6 @@ class ChatScreen extends StatelessWidget {
                                             final text = messageController.text.trim();
                                             if (text.isNotEmpty) {
                                               chatController.sendMessage(text);
-                                              messageController.clear();
                                             }
                                           },
                                         ),
@@ -194,28 +188,34 @@ class ChatScreen extends StatelessWidget {
                                             _buildButton(
                                               icon: Icons.attachment_rounded,
                                               text: 'Attach',
-                                              onTap: () =>
-                                                  debugPrint('Attach button pressed'),
+                                              onTap: () => debugPrint('Attach button pressed'),
                                             ),
                                             const SizedBox(width: 11),
                                             _buildButton(
                                               icon: FontAwesomeIcons.mixer,
                                               text: 'Mashup',
-                                              isSelected:
-                                              selectedButton.value == 'mashup',
+                                              isSelected: selectedButton.value == 'mashup',
                                               onTap: () {
-                                                selectedButton.value =
-                                                selectedButton.value == 'mashup'
+                                                selectedButton.value = selectedButton.value ==
+                                                    'mashup'
                                                     ? ''
                                                     : 'mashup';
+                                                if (selectedButton.value == 'mashup') {
+                                                  final idea = messageController.text
+                                                      .trim()
+                                                      .isNotEmpty
+                                                      ? messageController.text.trim()
+                                                      : "Default idea";
+                                                  chatController.generateMashup(idea);
+                                                  messageController.clear();
+                                                }
                                               },
                                             ),
                                             const SizedBox(width: 11),
                                             _buildButton(
                                               icon: FontAwesomeIcons.clock,
                                               text: 'Timeline',
-                                              isSelected:
-                                              selectedButton.value == 'timeline',
+                                              isSelected: selectedButton.value == 'timeline',
                                               onTap: () {
                                                 selectedButton.value =
                                                 selectedButton.value == 'timeline'
@@ -232,11 +232,9 @@ class ChatScreen extends StatelessWidget {
                                               ),
                                               child: IconButton(
                                                 icon: const Icon(Icons.send, size: 19),
-                                                color:
-                                                const Color.fromRGBO(66, 66, 66, 1),
+                                                color: const Color.fromRGBO(66, 66, 66, 1),
                                                 onPressed: () {
-                                                  final text =
-                                                  messageController.text.trim();
+                                                  final text = messageController.text.trim();
                                                   if (text.isNotEmpty) {
                                                     chatController.sendMessage(text);
                                                     messageController.clear();
@@ -258,28 +256,24 @@ class ChatScreen extends StatelessWidget {
                       return ListView.builder(
                         reverse: true,
                         padding: const EdgeInsets.all(16),
-                        itemCount: chatController.messages.length,
+                        itemCount: chatController.messages.length +
+                            (chatController.isLoading.value ? 1 : 0),
                         itemBuilder: (context, index) {
-                          if (chatController.isLoading.value &&
-                              index == 0) {
-                            // Show loading indicator at the top (most recent)
+                          if (chatController.isLoading.value && index == 0) {
                             return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 225),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 225),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const CircleAvatar(
                                     radius: 17,
                                     backgroundColor: Colors.grey,
-                                    child: Icon(Icons.auto_awesome,
-                                        color: Colors.white),
+                                    child: Icon(Icons.auto_awesome, color: Colors.white),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           "Patentify",
@@ -298,8 +292,7 @@ class ChatScreen extends StatelessWidget {
                                             const SizedBox(width: 8),
                                             Text(
                                               "Thinking...",
-                                              style: TextStyle(
-                                                  color: Colors.white70),
+                                              style: TextStyle(color: Colors.white70),
                                             ),
                                           ],
                                         ),
@@ -310,50 +303,40 @@ class ChatScreen extends StatelessWidget {
                               ),
                             );
                           }
+                          final messageIndex =
+                          chatController.isLoading.value ? index - 1 : index;
                           final reversedIndex =
-                              chatController.messages.length - 1 - index;
-                          final message =
-                          chatController.messages[reversedIndex];
+                              chatController.messages.length - 1 - messageIndex;
+                          final message = chatController.messages[reversedIndex];
                           final isUser = message.user.id == "user";
                           final urls = extractUrls(message.text.toString());
 
                           return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 225),
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 225),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CachedNetworkImage(
-                                  imageUrl: isUser
-                                      ? AuthController
-                                      .user.value?.photoURL ??
-                                      ''
-                                      : '',
-                                  errorWidget: (context, url, error) =>
-                                      Icon(
-                                        isUser
-                                            ? Icons.person
-                                            : Icons.auto_awesome,
-                                        color: Colors.white,
-                                      ),
-                                  imageBuilder: (context, imageProvider) =>
-                                      CircleAvatar(
-                                        radius: 17,
-                                        backgroundImage: imageProvider,
-                                        backgroundColor: Colors.grey,
-                                      ),
+                                  imageUrl:
+                                  isUser ? AuthController.user.value?.photoURL ?? '' : '',
+                                  errorWidget: (context, url, error) => Icon(
+                                    isUser ? Icons.person : Icons.auto_awesome,
+                                    color: Colors.white,
+                                  ),
+                                  imageBuilder: (context, imageProvider) => CircleAvatar(
+                                    radius: 17,
+                                    backgroundImage: imageProvider,
+                                    backgroundColor: Colors.grey,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         isUser
-                                            ? AuthController.user.value
-                                            ?.displayName ??
-                                            "user"
+                                            ? AuthController.user.value?.displayName ?? "user"
                                             : "Patentify",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
@@ -361,29 +344,33 @@ class ChatScreen extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Html(
-                                        data: message.text.toString(),
-                                        style: {
-                                          "body": Style(
-                                              color: Colors.white70),
-                                          "a": Style(
-                                              color: Colors.blue,
-                                              textDecoration:
-                                              TextDecoration.none),
-                                        },
-                                        onLinkTap: (url, _, __) {
-                                          if (url != null) {
-                                            _launchUrl(url);
-                                          }
-                                        },
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          if (isUser)
+                                            Html(
+                                              data: message.text,
+                                              style: {
+                                                "body": Style(color: Colors.white70),
+                                                "h2": Style(color: Colors.white, fontWeight: FontWeight.bold),
+                                                "h3": Style(color: Color.fromRGBO(180, 180, 180, 1)),
+                                                "p": Style(color: Colors.white),
+                                                "a": Style(
+                                                  color: Colors.blue,
+                                                  textDecoration: TextDecoration.underline,
+                                                ),
+                                              },
+                                              // extensions: [ LinkPreviewExtension(),],
+                                              onLinkTap: (url, _, __) {
+                                                if (url != null) {
+                                                  _launchUrl(url);
+                                                }
+                                              },
+                                            )
+                                          else
+                                            ..._buildPatentList(message.text, chatController),
+                                        ],
                                       ),
-                                      // Render LinkPreview for each extracted URL
-                                      // if (urls.isNotEmpty)
-                                      //   ...urls.map((url) => Padding(
-                                      //     padding: const EdgeInsets
-                                      //         .symmetric(vertical: 8),
-                                      //     child: _previewLink(url),
-                                      //   )),
                                     ],
                                   ),
                                 ),
@@ -394,7 +381,7 @@ class ChatScreen extends StatelessWidget {
                       );
                     }),
                   ),
-                  if( chatController.messages.isNotEmpty)
+                  if (chatController.messages.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ConstrainedBox(
@@ -423,14 +410,12 @@ class ChatScreen extends StatelessWidget {
                                   border: OutlineInputBorder(
                                     borderSide: BorderSide.none,
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.only(left: 5),
+                                  contentPadding: const EdgeInsets.only(left: 5),
                                   suffixIcon: Padding(
                                     padding: const EdgeInsets.only(right: 2),
                                     child: IconButton(
                                       icon: const Icon(Icons.mic),
-                                      color: const Color.fromRGBO(
-                                          180, 180, 180, 1),
+                                      color: const Color.fromRGBO(180, 180, 180, 1),
                                       onPressed: () {
                                         debugPrint('Mic button pressed');
                                       },
@@ -451,33 +436,33 @@ class ChatScreen extends StatelessWidget {
                                   _buildButton(
                                     icon: Icons.attachment_rounded,
                                     text: 'Attach',
-                                    onTap: () =>
-                                        debugPrint('Attach button pressed'),
+                                    onTap: () => debugPrint('Attach button pressed'),
                                   ),
                                   const SizedBox(width: 11),
                                   _buildButton(
                                     icon: FontAwesomeIcons.mixer,
                                     text: 'Mashup',
-                                    isSelected:
-                                    selectedButton.value == 'mashup',
+                                    isSelected: selectedButton.value == 'mashup',
                                     onTap: () {
                                       selectedButton.value =
-                                      selectedButton.value == 'mashup'
-                                          ? ''
-                                          : 'mashup';
+                                      selectedButton.value == 'mashup' ? '' : 'mashup';
+                                      if (selectedButton.value == 'mashup') {
+                                        final idea = messageController.text.trim().isNotEmpty
+                                            ? messageController.text.trim()
+                                            : "Default idea";
+                                        chatController.generateMashup(idea);
+                                        messageController.clear();
+                                      }
                                     },
                                   ),
                                   const SizedBox(width: 11),
                                   _buildButton(
                                     icon: FontAwesomeIcons.clock,
                                     text: 'Timeline',
-                                    isSelected:
-                                    selectedButton.value == 'timeline',
+                                    isSelected: selectedButton.value == 'timeline',
                                     onTap: () {
                                       selectedButton.value =
-                                      selectedButton.value == 'timeline'
-                                          ? ''
-                                          : 'timeline';
+                                      selectedButton.value == 'timeline' ? '' : 'timeline';
                                     },
                                   ),
                                   const Spacer(),
@@ -489,11 +474,9 @@ class ChatScreen extends StatelessWidget {
                                     ),
                                     child: IconButton(
                                       icon: const Icon(Icons.send, size: 19),
-                                      color:
-                                      const Color.fromRGBO(66, 66, 66, 1),
+                                      color: const Color.fromRGBO(66, 66, 66, 1),
                                       onPressed: () {
-                                        final text =
-                                        messageController.text.trim();
+                                        final text = messageController.text.trim();
                                         if (text.isNotEmpty) {
                                           chatController.sendMessage(text);
                                           messageController.clear();
@@ -563,8 +546,6 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-
-  // Function to launch URL
   Future<void> _launchUrl(String url) async {
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
@@ -575,17 +556,96 @@ class ChatScreen extends StatelessWidget {
   }
 
   Widget _previewLink(String url) {
-
     return LinkPreview(
-      linkStyle: const TextStyle(color: Colors.blue),
-      metadataTextStyle: const TextStyle(fontSize: 14, color: Colors.white70),
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      previewData: null, // Let it fetch automatically
-      onPreviewDataFetched: (data) {
-        print('Preview loaded for $data');
-      },openOnPreviewImageTap: true,openOnPreviewTitleTap: true,
-      text: url,hideImage: false,enableAnimation: true,
-      width: MediaQuery.of(Get.context!).size.width * 0.8,
+      url: url,
+      config: LinkPreviewConfig(
+        style: LinkPreviewStyle.compact,
+        titleMaxLines: 2,
+        descriptionMaxLines: 3,
+        showImage: true,
+        showFavicon: true,
+        handleNavigation: true,
+        animateLoading: true,
+        cacheDuration: Duration(hours: 24),
+      ),
+
     );
   }
+
+  List<Widget> _buildPatentList(String html, cl.ChatController chatController) {
+    final document = parse(html);
+    final elements = document.body?.children ?? [];
+    List<Widget> widgets = [];
+
+    for (var element in elements) {
+      if (element.localName == 'ul') {
+        final items = element.getElementsByTagName('li');
+        for (var li in items) {
+          final aTag = li.getElementsByTagName('a').first;
+          final href = aTag.attributes['href'] ?? '#';
+          final title = aTag.text;
+
+        if(href.isNotEmpty){
+          widgets.add(
+            Obx(() {
+              final isSelected =
+              chatController.selectedPatents.any((p) => p["link"] == href);
+              return Row(
+                children: [
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (value) {
+                      chatController.togglePatentSelection(title, href);
+                    },
+                    activeColor: Colors.blue,
+                    checkColor: Colors.white,
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _launchUrl(href),
+                      child: URLTile(
+                        url:
+                        href,imageHeight: 50,
+                        // customTile: Text(title),
+                      ),
+                      // Text(
+                      //   title,
+                      //   style: const TextStyle(
+                      //     color: Colors.blue,
+                      //     decoration: TextDecoration.underline,
+                      //   ),
+                      // ),
+                    ),
+                  ),
+                ],
+              );
+            }),
+          );
+        }
+        }
+      } else {
+        widgets.add(Html(
+          data: element.outerHtml,
+          style: {
+            "body": Style(color: Colors.white70),
+            "h2": Style(color: Colors.white, fontWeight: FontWeight.bold),
+            "h3": Style(color: Color.fromRGBO(180, 180, 180, 1)),
+            "p": Style(color: Colors.white),
+            "a": Style(
+              color: Colors.blue,
+              textDecoration: TextDecoration.underline,
+            ),
+          },
+          // extensions: [ LinkPreviewExtension(),],
+          onLinkTap: (url, _, __) {
+            if (url != null) {
+              _launchUrl(url);
+            }
+          },
+        ));
+      }
+    }
+    return widgets;
+  }
 }
+
